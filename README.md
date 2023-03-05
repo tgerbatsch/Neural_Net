@@ -10,3 +10,6 @@ preferably run the python script in an IDE to see the different variables\
 the net is stored as an instance of the class "Net" within lib/net \
 Net.knots are the knots of the net, i.e. the current activation\
 Net.weights are weights between the net, i.e. the essential information of the network
+
+## Purpose
+This is mainly a fun project to understand the tensor operations inside a neural network. The tensor notation is the same as in the youtube video on neural networks of "3blue 1brown"
