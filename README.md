@@ -12,4 +12,5 @@ Net.knots are the knots of the net, i.e. the current activation\
 Net.weights are weights between the net, i.e. the essential information of the network
 
 ## Purpose
-This is mainly a fun project to understand the tensor operations inside a neural network. The tensor notation is the same as in the youtube video on neural networks of "3blue 1brown"
+This is mainly a fun project to understand the tensor operations inside a neural network. The tensor notation is the same as in the youtube video on neural networks of "3blue 1brown".
+The main technical finding may be in the lib/net.grad() method where the gradient is calculated via backpropagation.
