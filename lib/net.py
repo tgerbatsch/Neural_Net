@@ -13,7 +13,7 @@ import numpy as np
 ##
     
 ##cost function
-class Cf(object):
+class Cost_function(object):
     
     ##mean square error and its derivative
     @staticmethod
@@ -23,31 +23,52 @@ class Cf(object):
 
 ##the net
 class Net(object):
+    """Instances of the Net class store the neural network as an objects.
+    The information stored is permanent information (weights, biases, activation function)
+    as well as there may be futile information: the activation of the inner 'neurons' here called 'knots'.
+    !Note activation != activation function (somehow unlucky notation)
+    !What we call here 'activation function' is called sigma in the 3blue 1brown youtube video
+    VARIABLES / notations are:
+    - w => weights (2D matrix)
+    - a => activation / knots (1D vector)
+    - b => bias (1D vector)
+    - z => helper function ; z = (w times a  plus b)
+    - C => cost function (at the very last layer)
+
+    DERIVATIVES => Notation is with a 'd' at the Beginning: daj_dbj
+    INDIZES are 'L', 'i', 'j', 'k'
+    -L/i => index of Lth layer. L/i are use interchangeably
+    -j => index of jth element in one fixed layer
+    -k => index of kth element in previous layer
+     wjk => weight matrix which eats k inputs and spits out j outputs
+    -daj_dwjk => derivative of the jth activation in layer N
+     with respect to the weight matrix entry wjk. The matrix operates between layer N-1 and N
+    """
     
     ##constructor, lys = "layers"
-    def __init__(self, lys = [784, 16, 16, 10], af = 'sigmoid' ):
+    def __init__(self, layer_sizes = [784, 16, 16, 10], af ='sigmoid'):
           
         ##initialize knots und weights und biases
-        self.number_of_layers = number_of_layers = len(lys)
-        lys = np.array(lys)
+        self.number_of_layers = number_of_layers = len(layer_sizes)
+        layer_sizes = np.array(layer_sizes)
         knots = []
         weights=[]
         biases =[]
         for i in range(number_of_layers - 1):
             #name_of_layer = "a_upper" + str(i)
             ##knoten sind eine liste von arrays. jdr array hat die groesse des entsprechenden layers
-            knots.append(np.zeros(lys[i])) 
-            biases.append(np.zeros(lys[i+1])) 
+            knots.append(np.zeros(layer_sizes[i]))
+            biases.append(np.zeros(layer_sizes[i + 1]))
             
             ##weights sind eine Liste aus Matrizen
-            weights.append( np.zeros((lys[i+1], lys[i])) )
+            weights.append(np.zeros((layer_sizes[i + 1], layer_sizes[i])))
         
             
         ##initialisiere knots letzte layer
-        knots.append(np.zeros(lys[number_of_layers -1]))
+        knots.append(np.zeros(layer_sizes[number_of_layers - 1]))
         #biases.append(np.zeros(lys[i])) 
         
-        self.lys     = lys
+        self.lys     = layer_sizes
         self.knots   = knots
         self.weights = weights
         self.biases  = biases
@@ -59,7 +80,7 @@ class Net(object):
         
         
     ##assign random weights to the net in [-1, +1]
-    def rnd(self):
+    def assign_random_weights(self):
             
         number_of_layers = self.number_of_layers
         lys = self.lys
@@ -84,7 +105,7 @@ class Net(object):
         self.biases  = biases
                 
 
-    ##"propagation": calculate knots of given net as a function of its activation
+    ##"propagation": calculate knots of given net as a function of its input activation
     def prop(self, activation):
         
         ## the first layer of knots equals the activation
@@ -115,7 +136,7 @@ class Net(object):
 
     ##"backpropagation": calculate the gradient of given cost function
     ##of a single activation and a single label
-    def grad(self, activation, label, costfunc = Cf().mean_square):
+    def calculate_gradient(self, activation, label, costfunc = Cost_function().mean_square):
         
         ##help function for easier notation
         ##wL is weight Matrix, (jacobi) is wL.T; aLk_min1 is a vector
@@ -126,7 +147,7 @@ class Net(object):
             
         
         ##calculate the derivatives of weights ans biases
-        ## "z" is a vector with index j , aLk is a vector with different indizees
+        ## "z" is a vector with index j , aLk is a vector with two different indizees
         ##return da_dw
         ##returns array of daj_dwjk
         def daj_dwjk(aLk_min1, activation_func, z):
@@ -160,8 +181,8 @@ class Net(object):
         layers = self.lys
         size_of_last_layer = layers[number_of_layers -1]
         soll = np.fromfunction(lambda x: 1*(x==label), (size_of_last_layer,)) 
-        #cost = np.sum( Cf().mean_square(ist, soll)[0] )              
-        #costf = ( Cf().mean_square(ist, soll) ) ##cost and its derivative
+        #cost = np.sum( Cost_function().mean_square(ist, soll)[0] )
+        #costf = ( Cost_function().mean_square(ist, soll) ) ##cost and its derivative
         costf = ( costfunc(ist, soll) ) ##cost and its derivative
                 
         
@@ -173,7 +194,7 @@ class Net(object):
         for i in range (number_of_layers -2,-1,-1):
             
             ##dC_da
-            dC_a = self.grad_knots[i+1]
+            dC_da = self.grad_knots[i+1]
             
             ##biases of layer i
             bL = self.biases[i]
@@ -195,23 +216,23 @@ class Net(object):
             #self.grad_bias.insert(i, grad_bias_i)
             
             ##dC/dw = dC/da * da/dw
-            dC_dw_i = (np.multiply(da_dw_i ,dC_a)).T
+            dC_dw_i = (np.multiply(da_dw_i ,dC_da)).T
             self.grad_weights[i] = dC_dw_i
             
             ##dC/db = dC/da * da/db
-            dC_db_i = (np.multiply(da_db_i ,dC_a))
+            dC_db_i = (np.multiply(da_db_i ,dC_da))
             self.grad_biases[i] =  dC_db_i
             
             ##da/da_min1 = ...
             dada_min1 = da_da_min1(wL, activation_function, zL_j)
             
             ##dC/da_min1(da/da_min1) = ... 
-            dC_da_min1 = np.matmul(dada_min1, dC_a)
+            dC_da_min1 = np.matmul(dada_min1, dC_da)
             self.grad_knots[i]= dC_da_min1
 
         
     ## "multigradient" calculate the gradient of n activations and its corresponding n labels             
-    def ngrad(self, activationS, labelS, costfunc = Cf().mean_square):
+    def ngrad(self, activationS, labelS, costfunc = Cost_function().mean_square):
         
         ##activations n labels are supposed to be of the form (N x Hoehe x Breite)
         ## and (N) respectively
@@ -224,7 +245,7 @@ class Net(object):
         ##calculate gradient of first entry to initialize grad_weight, grad_biases
         activation = activationS[0]
         label      = labelS[0]
-        self.grad(activation, label, costfunc)
+        self.calculate_gradient(activation, label, costfunc)
         grad_weights = self.grad_weights
         grad_biases  = self.grad_biases
         grad_knots   = self.grad_knots
@@ -234,7 +255,7 @@ class Net(object):
         for i in range (1,nr_of_images):
             activation = activationS[i]
             label      = labelS[i]
-            self.grad(activation, label, costfunc)
+            self.calculate_gradient(activation, label, costfunc)
             for j in range(len(grad_weights)):
                 grad_weights[j] += self.grad_weights[j]
                 
@@ -275,8 +296,8 @@ class Net(object):
     
     
     ##train the net with a given set of data, labels
-    def train(self, activationS, labelS, bundlesize, steplength = 0.1\
-              ,costfunc = Cf().mean_square ):
+    def train(self, activationS, labelS, bundlesize, steplength = 0.1 \
+              , costfunc = Cost_function().mean_square):
         
         ##check, whether the bundlesize fits the number of data sets
         if np.shape(activationS)[0] != np.shape(labelS)[0]:
@@ -298,7 +319,7 @@ class Net(object):
             #self.prop(activation)
             
             ##calculate gradient
-            self.grad(activation, label, costfunc)
+            self.calculate_gradient(activation, label, costfunc)
     
             ##move step of given length towards the negative gradient
             self.step_grad(steplength)
@@ -307,7 +328,7 @@ class Net(object):
             counter += 1
         
             
-        ##move steps of bundled gradient
+        ##move steps of bundled gradient (if using a badge size)
         for i in range(int(nr_of_images/bundlesize - rest)):
             activations_bundle = activationS[counter:counter + bundlesize]
             labels_bundle      = labelS[counter:counter + bundlesize]
