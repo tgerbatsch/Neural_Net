@@ -16,7 +16,7 @@ This is mainly a fun project to understand the tensor operations inside a neural
 The main technical finding may be in the lib/net.grad() method where the gradient is calculated via backpropagation.
 
 
-##Result
+## Result
 Note that the output of the demo.py is not especially graphically entertaining.
 When the process is finished, a variable called "result_of_testing" will be calculated.
 You have to inspect that variable "result_of_testing" manually.
