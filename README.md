@@ -2,6 +2,7 @@
 ## introduction
 hi there!\
 this is a neural net class implemented in python3 using only numpy as library \
+The purpose of the net is to classify/recognize written numbers [1 - 9] \
 this particular neural net is based on the explanation from the "3blue 1brown" youtube video on neural networks\
 without using their coding examples. The tensor notation is the same as in the video.\
 run demo.py for a first impression. It may take a couple of minutes\
